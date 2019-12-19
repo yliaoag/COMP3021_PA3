@@ -23,6 +23,12 @@ public class Player {
         return this.position;
     }
 
+    /**
+     * Add a new {@param pokemon} to the player's pokemon list
+     * need to check whether it already exists in the list and the balls are enough
+     * @param pokemon
+     * @return
+     */
     public boolean addPokemon(Pokemon pokemon) {
         if (numBalls >= pokemon.getReqBall() && !pokemonList.contains(pokemon)){
             pokemonList.add(pokemon);
@@ -50,7 +56,10 @@ public class Player {
     public int getNumBalls() {
         return numBalls;
     }
-
+    /**
+     * Construct the score function
+     *
+     * */
     public String totalScore(){ return Integer.toString(getNumBalls() + pokemonList.size()*5 + getNumType()*10 + getMaxPower() - (path.size()-1));}
 
     public String scoreboard(){ return getNumBalls()+":"+pokemonList.size()+":"+getNumType()+":"+getMaxPower();}

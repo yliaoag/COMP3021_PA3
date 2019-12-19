@@ -6,7 +6,7 @@ import java.util.List;
 public class Game {
 	private Map map;
 	private Player player;
-	boolean[][] visited;
+	private boolean[][] visited;
 	public Game(File inputFile) throws Exception {
 		initialize(inputFile);
 		visited = new boolean[map.getRows()][map.getCols()];
@@ -88,7 +88,10 @@ public class Game {
 		}
 		br.close();
 	}
-
+	/**
+	* Check this movement is valid or not
+	* @param move the movement needs to be checked
+	 */
 	public boolean validMove(Position move){
 		if (!move.outOfmap(this.map.getRows(), this.map.getCols())){
 			Cell cell = this.map.cells[move.row][move.col];
@@ -102,10 +105,12 @@ public class Game {
 		return false;
 	}
 
-	public void reset() {
-		for (int i = 0; i < visited.length; i++)
-			Arrays.fill(visited[i], false);
-	}
+	/**
+	 * Find a path from {@param source} to {@param target}
+	 * @param source
+	 * @param target
+	 * @return a shortest path from {@param source} to {@param target}
+	 */
 
 	public Path moveTo(Position source, Position target) {
 		LinkedList<Position> nextToVisit = new LinkedList<>();
@@ -147,6 +152,12 @@ public class Game {
 		}
 		return new Path();
 	}
+
+	/**
+	 * Trace back the path from {@param cur} to its root
+	 * @param cur
+	 * @return
+	 */
 	private Path backtrackPath(Position cur) {
 		Path path = new Path();
 		Position iter = cur;
@@ -158,7 +169,10 @@ public class Game {
 		path.reverse();
 		return path;
 	}
-
+	public void reset() {
+		for (int i = 0; i < visited.length; i++)
+			Arrays.fill(visited[i], false);
+	}
 	public static void main(String[] args) throws Exception{
 
 		File inputFile = new File("/Users/yihanliao/Documents/COMP3021/PA3/Pokemon_PA3/src/sampleInput.txt");
@@ -179,7 +193,6 @@ public class Game {
 		List<Position> nodes = game.map.getPokemons();
 		nodes.addAll(game.map.getStationList());
 		nodes.add(game.map.getDestPos());
-		Position source = game.map.getBeginPos();
 
 		int min = 100;
 
@@ -227,6 +240,28 @@ public class Game {
 			}
 		}
 		game.player.addStep(game.map.getDestPos());
+		game.player.setPosition(game.map.getDestPos());
+
+		game.player.path.clear();
+		game.player.setPosition(game.map.getBeginPos());
+
+		for (Path item: paths) {
+			List<Position> list = item.getPath();
+			for (Position pos: list){
+				Cell cell = game.map.cells[pos.row][pos.col];
+				if (cell instanceof Station){
+					game.player.addBall((Station)cell);
+				}
+				else if (cell instanceof Pokemon){
+					game.player.addPokemon((Pokemon) cell);
+				}
+				game.player.addStep(pos);
+				game.player.setPosition(pos);
+			}
+		}
+
+		game.player.addStep(game.map.getDestPos());
+
 		game.player.setPosition(game.map.getDestPos());
 
 		System.out.println(game.player.totalScore());
