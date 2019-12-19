@@ -175,8 +175,8 @@ public class Game {
 	}
 	public static void main(String[] args) throws Exception{
 
-		File inputFile = new File("/Users/yihanliao/Documents/COMP3021/PA3/Pokemon_PA3/src/sampleInput.txt");
-		File outputFile = new File("/Users/yihanliao/Documents/COMP3021/PA3/Pokemon_PA3/src/sampleOut.txt");
+		File inputFile = new File("./sampleInput.txt");
+		File outputFile = new File("./sampleOut.txt");
 
 		if (args.length > 0) {
 			inputFile = new File(args[0]);
@@ -190,17 +190,40 @@ public class Game {
 		// Read the configures of the map and pokemons from the file inputFile
 		// and output the results to the file outputFile
 		Game game = new Game(inputFile);
+
+		//find the nearest supply station first
+		Position next_position = new Position(game.map.getBeginPos());
+		int index = 0;
+		List<Position> Stations = game.map.getStationList();
+		int minimum  = 100;
+
+		List<Path> paths = new ArrayList<>();
+
+		Position source = new Position(game.player.getPosition());
+		for (Position item : Stations) {
+			game.reset();
+			int steps =game.moveTo(source, item).size();
+			if (steps < minimum) {
+				minimum = steps;
+				next_position = item;
+				index = Stations.indexOf(item);
+			}
+		}
+		game.reset();
+		paths.add(game.moveTo(source, next_position));
+		game.player.setPosition(next_position);
+		Stations.remove(index);
+
 		List<Position> nodes = game.map.getPokemons();
-		nodes.addAll(game.map.getStationList());
+		nodes.addAll(Stations);
 		nodes.add(game.map.getDestPos());
 
 		int min = 100;
 
-		Position next_position = new Position(game.map.getBeginPos());
 		boolean reached = false;
-		List<Path> paths = new ArrayList<>();
+
 		while(!reached) {
-			int index = 0;
+			index = 0;
 			min = 100;
 			Position start = new Position(game.player.getPosition());
 			for (Position item : nodes) {
@@ -217,7 +240,6 @@ public class Game {
 			nodes.remove(index);
 			Cell cell = game.map.cells[next_position.row][next_position.col];
 			if (cell instanceof TerminationCell) reached = true;
-			//next_position.display();
 			game.player.addStep(next_position);
 			game.player.setPosition(next_position);
 		}
@@ -240,29 +262,9 @@ public class Game {
 			}
 		}
 		game.player.addStep(game.map.getDestPos());
-		game.player.setPosition(game.map.getDestPos());
-
-		game.player.path.clear();
-		game.player.setPosition(game.map.getBeginPos());
-
-		for (Path item: paths) {
-			List<Position> list = item.getPath();
-			for (Position pos: list){
-				Cell cell = game.map.cells[pos.row][pos.col];
-				if (cell instanceof Station){
-					game.player.addBall((Station)cell);
-				}
-				else if (cell instanceof Pokemon){
-					game.player.addPokemon((Pokemon) cell);
-				}
-				game.player.addStep(pos);
-				game.player.setPosition(pos);
-			}
-		}
-
-		game.player.addStep(game.map.getDestPos());
 
 		game.player.setPosition(game.map.getDestPos());
+
 
 		System.out.println(game.player.totalScore());
 
